@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #ffffff; /* Warna putih */
+  background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1869 606"><circle cx="934.5" cy="-328.5" r="910.5" fill="%23B3E5FC"/></svg>');
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: top right; /* Posisi: bisa left, right, center, top, bottom */
+  background-size: 900px auto; /* Atur ukuran, contoh: auto untuk tinggi menyesuaikan */
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif; /* Opsional */
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out infinite;
+}
+.svg-layer {
+  position: absolute;
+  top: 0;
+  right: 0; /* Menempatkan SVG kedua di kanan atas */
+  width: 500px; /* Sesuaikan ukuran */
+  height: auto;
+  z-index: -1; /* Agar di atas background utama */
+  pointer-events: none; /* Supaya tidak mengganggu klik elemen lain */
+}
+.svg-layer1 {
+  position: absolute;
+  transform: scale(-1);
+  bottom: 0;
+  width: 300px;
+  height: auto;
+  z-index: -3;
+  pointer-events: none;
+}
+
+.svg-layer2 {
+  position: absolute;
+  transform: scale(-1);
+  bottom: 0;
+  width: 400px;
+  height: auto;
+  z-index: -4;
+  pointer-events: none;
+}
+
+/* Responsif untuk layar lebih kecil dari 'md' */
+@media (max-width: 767px) {
+  .svg-layer1 {
+    width: 300px; /* Ukuran tetap untuk layar kecil */
+  }
+
+  .svg-layer2 {
+    width: 400px; /* Ukuran tetap untuk layar kecil */
+  }
+}
+
+/* Responsif untuk layar dengan ukuran 'md' dan lebih besar */
+@media (min-width: 768px) {
+  .svg-layer1 {
+    width: 300px; /* Ukuran untuk layar medium dan lebih besar */
+  }
+
+  .svg-layer2 {
+    width: 400px; /* Ukuran untuk layar medium dan lebih besar */
+  }
+}
+
+.aichan {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 140px;
+  z-index: 1;
+  height: 140px;
+}
+.aichan, .kyochan {
+  flex-shrink: 0; /* Agar tidak mengecil jika layar kecil */
+}
+.kyochan {
+  position: relative;
+  top: 100px;
+  margin: 0;
+  padding: 0;
+  /* left: 0px; */
+  right: 240px;
+  bottom: 0;
+z-index: 1;
+  width: 100px;
+  height: 100px;
+}
+/* Hapus border bawaan Carbon */
+/* Hapus border bawaan Carbon */
+.bx--date-picker__input {
+    border: 1px solid #d1d5db !important; /* border-gray-300 */
+    border-radius: 0.375rem !important; /* rounded-lg */
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .bx--date-picker__input:focus {
+    border-color: rgb(8, 8, 8) !important; /* focus:border-blue-500 */
+    /* box-shadow: 0 0 0 3px rgba(8, 8, 8, 0.5) !important; focus:ring-blue-500 */
+  }
+  
+  /* .bx--date-picker__input:hover {
+    border-color: #60a5fa !important; /* hover:border-blue-400 */
+  /* } */ 
+  
+  /* Gaya untuk keadaan tidak aktif */
+  .bx--date-picker__input:disabled {
+    background-color: #f3f4f6; /* bg-gray-100 */
+    border-color: #e5e7eb; /* border-gray-200 */
+  }
+  

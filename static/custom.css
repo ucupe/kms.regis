@@ -1,0 +1,43 @@
+/* :root {
+  --cds-grid-breakpoints: (
+    sm: 480px,
+    md: 672px,
+    lg: 1056px,
+    xlg: 1312px,
+    max: 1584px
+  );
+} */
+
+
+
+
+
+.bx--date-picker {
+    width: 100%;
+  }
+.bx--date-picker-container {
+    width: 100%;
+  }
+.flatpickr-wrapper {
+    width: 100%;
+  }
+.bx--content {
+    max-width: 900px;
+  }
+  /* Custom styles for columns */
+.custom-stack-columns {
+    display: flex;
+    flex-direction: row;
+  }
+
+  @media (max-width: 480px) {
+  .custom-stack-columns {
+      flex-direction: column;
+    }
+
+  .custom-stack-columns > .bx--col {
+      width: 100%;
+      max-width: 100%;
+      flex: 0 0 100%;
+    }
+  }
