@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { error } from '@sveltejs/kit';
 
 const FRAPPE_URL = env.FRAPPE_URL;
 const API_KEY = env.API_KEY;
@@ -18,9 +19,8 @@ export async function load({url}) {
     });
     const result = await response.json();
     if (!response.ok || result.data.length === 0) {
-      return fail(404, {
-        error: 'Questionnaire Template not found.',
-      });
+      return error(404, 'Questionnaire Template not found.',
+      );
     }
     if(appointment_id){
       const appt_response = await fetch(`${FRAPPE_URL}/api/resource/Patient Appointment/${appointment_id}`, {
@@ -31,9 +31,9 @@ export async function load({url}) {
       });
       const appt_result = await appt_response.json();
       if (!appt_response.ok || appt_result.data.length === 0) {
-        return fail(404, {
-          error: 'Patient Appointment not found.',
-        });
+
+        throw error(404, 
+         'Patient Appointment nots found.');
       }
       return {
         questionnaire: result.data,
@@ -43,11 +43,15 @@ export async function load({url}) {
     return {
       questionnaire: result.data
     };
-  } catch (error) {
-    return {
-      status: error.status,
-      error: new Error('Failed to load questionnaire data')
-    };
+  } catch (err) {
+    // console.log({'qst-be': err})
+
+    // console.log(err)
+    return error (err.status, {
+      status: err.status,
+      error:'Failed to load questionnaire data',
+      message: err.body.message
+    });
   
   }
 }

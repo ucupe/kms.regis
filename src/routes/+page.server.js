@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { error } from '@sveltejs/kit';
 
 const FRAPPE_URL = env.FRAPPE_URL;
 const API_KEY = env.API_KEY;
@@ -12,23 +13,26 @@ export async function load() {
         'Content-Type': 'application/json'
       }
     });
-    console.log(response)
+    // console.log(response)
 
     const result = await response.json();
+    // console.log(result)   
     if (!response.ok || result.data.length === 0) {
-      return fail(404, {
-        error: 'Appointment Type not found',
+      console.log(response)
+      return error(response.status, {
+        status: response.status,
+        message: response.statusText
       });
     } else {
-      console.log(result.data)
       return {
         type: result.data
       };
     }
-  } catch (error) {
-    return {
-      status: error.status,
-      error: new Error('Failed to load Appointment Type')
-    };
+  } catch (err) {
+    console.log(`Errorw: ${err}`);
+    throw error(500, {
+      status: 500,
+      message: 'Internal Server Error'
+    })
   }
 }

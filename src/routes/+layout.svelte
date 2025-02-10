@@ -28,11 +28,12 @@
   href= '/'
   company="Kyoai Medical Service"
   bind:isSideNavOpen
+ 
 >
   <svelte:fragment slot="skip-to-content">
     <SkipToContent />
   </svelte:fragment>
-  <HeaderNav>
+  <HeaderNav >
     <HeaderNavItem href="/about" text="About" />
     <HeaderNavItem href="/contact" text="Contact" />
   </HeaderNav>

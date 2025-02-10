@@ -9,7 +9,11 @@
 } */
 
 
-
+.bx--header{
+  background: rgb(5,0,93) !important;
+  background: linear-gradient(90deg, rgba(5,0,93,1) 0%, rgba(0,53,186,1) 53%, rgba(6,0,112,1) 100%) !important;
+    color: #ffffff !important;
+}
 
 
 .bx--date-picker {

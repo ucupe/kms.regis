@@ -207,6 +207,10 @@ export const actions = {
 				body: regFormData
 			});
 			const regResult = await regResponse.json();
+			console.log({
+				'backend response': regResponse,
+				'backend result': regResult
+			})
 			if(!regResponse.ok) {
 				throw fail(500, {
 					error: error,
@@ -215,7 +219,8 @@ export const actions = {
 			}
 			return {
 				status: 200,
-				message: 'Brasil membuat data pasien, customer, dan alamat.'
+				message: 'Brasil membuat data pasien, customer, dan alamat.',
+				body: regResult
 			};
 		} catch (error) {
 			return {

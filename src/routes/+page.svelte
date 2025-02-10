@@ -14,6 +14,7 @@ import aichan from "../assets/image/Group-aichan.svg";
 import kyochan from "../assets/image/Group-kyochan.svg";
 
   export let data;
+  console.log('FEr',data);
   function navigateTo(source) {
     goto(`/pattype?source=${source}`);
   }
@@ -62,7 +63,15 @@ import kyochan from "../assets/image/Group-kyochan.svg";
   // const chunks = chunkArray(data.type, 3);
 </script>
 
+{#if data.status == 500}
+<div class="w-full h-full mt-16">
+  <div class="text-2xl md:text-3xl font-bold text-gray-600 text-center pt-20">
+    <h1>{data.message}</h1>
+  </div>
+</div>
+{:else}
 <div class="w-full h-full mt-16 ">
+  
   {#if !isMobile}
 	<svg class="absolute bottom-0 w-[300px] h-auto transform scale-[-1] z-[-3] pointer-events-none md:w-[300px] md:h-auto " width="1278" height="1674" viewBox="0 0 1278 1674" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle opacity="0.545677" cx="910" cy="764" r="910" fill="url(#paint0_linear_0_419)"/>
@@ -130,7 +139,7 @@ import kyochan from "../assets/image/Group-kyochan.svg";
 	</svg>
 </div>
 {/if}
-
+{/if}
 <!-- <Grid>
   <Row>
     <h1>Welcome Kyoai Medical Service</h1>

@@ -20,6 +20,7 @@
 	import { patient } from '$lib/store/patient';
 
 	export let data;
+	// console.log({'FE ': data});
 	const questionnaire = data.questionnaire;
 	const appointment_data = data.appointment;
 

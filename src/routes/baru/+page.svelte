@@ -18,6 +18,7 @@
 		SelectItem,
 		InlineNotification
 	} from 'carbon-components-svelte';
+	import { Console } from 'carbon-pictograms-svelte';
 	export let data;
 
 	// Form data and validation state
@@ -38,6 +39,7 @@
 		occupation: '',
 		address: ''
 	};
+	let source = '';
 	// style
 	const selectStyleFlowbite = {
 		control: (base) => ({
@@ -83,12 +85,13 @@
 	let apiError = '';
 	let isLoading = false;
 	
-	$: source = $page.url.searchParams.get('source');
+	source = $page.url.searchParams.get('source');
 	$: isFormValid = validateForm(formData, errors);
 	$: console.log('formData:', formData);
-$: console.log('errors:', errors);
+	// $: console.log('errors:', errors);
 // $: console.log('isFormValid:', isFormValid);
 
+	console.log({'a':source});
 
 	console.log(isFormValid)
 	let companySearch = [];
@@ -149,7 +152,11 @@ $: console.log('errors:', errors);
 	function handleSelectSearcInput(event, field) {
 
 		formData[field] = event.detail.value
-		
+		console.log('test0'+field, formData[field])
+		console.log({"datas":formData,
+		"field":field
+	
+		})
 	}
 	
 	
@@ -200,6 +207,7 @@ $: console.log('errors:', errors);
 
 	// Event handlers
 	function handleInputChange(field, value, validationFn) {
+		
 		formData[field] = value;
 		if (validationFn) {
 			errors[field] = value && !validationFn(value) ? `Please enter a valid ${field}` : '';
@@ -221,8 +229,9 @@ $: console.log('errors:', errors);
   };
 
   const isMoreThanTwoDays = (inputDate) => {
+	const currentDate = new Date();
     const selectedDate = parseDate(inputDate);
-    const diffTime = currentDate - selectedDate;
+    const diffTime = currentDate.getDate() - selectedDate;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
     return diffDays > 2;
@@ -289,58 +298,73 @@ $: console.log('errors:', errors);
 	 * @param event
 	 * 
 	 */
-  const handleSubmit = async (event) => {
-	// event.preventDefault();
-	isLoading = true;
-    try {
-      // Simulasi proses async
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-	  goto(`/success`);
-      // Lakukan operasi lain di sini
-    } catch (error) {
-      console.error(error);
-    } finally {
-      isLoading = false;
-    }
-  };
+//   const handleSubmit = async (event) => {
+// 	event.preventDefault();
+// 	isLoading = true;
+// 	console.log('data', formData)
+// 	console.log('clean', errors)
+//     try {
+//       // Simulasi proses async
+//     //   await new Promise((resolve) => setTimeout(resolve, 3000));
+// 	  if (isMoreThanTwoDays(formData.exam_date)) {
+// 		  goto(`/success`);
+// 	  }else{
+// 			console.log('source', source)
+// 			// console.log('source', $page.url.searchParams.get('source'))
+// 		  goto(`/questionnaire?source=${source}&app`);
+// 	  }
+//       // Lakukan operasi lain di sini
+//     } catch (error) {
+//       console.error(error);
+//     } finally {
+//       isLoading = false;
+//     }
+//   };
 
 
 
   
  
-	// async function handleSubmit(event) {
-	// 	event.preventDefault();
-	// 	const cleanedData = cleanData(formData);
-	// 	const baruFormData = new FormData();
-
-	// 	for (const key in cleanedData) {
-	// 		baruFormData.append(key, cleanedData[key]);
-	// 	}
-	// 	baruFormData.append('source', source);
-	// 	if (isFormValid) {
-	// 		try {
-	// 			const response = await fetch('/baru', {
-	// 				method: 'POST',
-	// 				body: baruFormData
-	// 			});
-	// 			const result = await response.json();
-	// 			if (response.ok) {
-	// 				if (result.status === 200) {
-	// 					goto(`/success`);
-	// 				} else {
-	// 					apiError = JSON.parse(result.data)[1];
-	// 				}
-	// 			} else {
-	// 				const errorMessage = await extractErrorMessage(result);
-	// 				apiError = errorMessage || 'An error occurred. Please try again.';
-	// 			}
-	// 		} catch (error) {
-	// 			console.log(`Error: ${error}`);
-	// 		}
-	// 	} else {
-	// 		console.log('Form is invalid. Please correct the errors.');
-	// 	}
-	// }
+	async function handleSubmit(event) {
+		event.preventDefault();
+		const cleanedData = cleanData(formData);
+		const baruFormData = new FormData();
+			
+		for (const key in cleanedData) {
+			baruFormData.append(key, cleanedData[key]);
+		}
+		baruFormData.append('source', source);
+		if (isFormValid) {
+			try {
+				const response = await fetch('/baru', {
+					method: 'POST',
+					body: baruFormData
+				});
+				const result = await response.json();
+				if (response.ok) {
+					if (result.status === 200) {
+						if (isMoreThanTwoDays(formData.exam_date)){
+							goto(`/success`);
+						}else{
+							console.log('source', source)
+							goto(`/questionnaire?source=${source}&`);
+						}
+					} else {
+						apiError = JSON.parse(result.data)[1];
+					}
+				} else {
+					const errorMessage = await extractErrorMessage(result);
+					apiError = errorMessage || 'An error occurred. Please try again.';
+				}
+			} catch (error) {
+				console.log(`Error: ${error}`);
+			} finally {
+				isLoading = false;
+			}
+		} else {
+			console.log('Form is invalid. Please correct the errors.');
+		}
+	}
 
 	function clearForm() {
 		formData = Object.fromEntries(Object.keys(formData).map((key) => [key, '']));
@@ -352,10 +376,10 @@ $: console.log('errors:', errors);
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 <div class=" h-full container w-full mx-auto pb-8 mb-8 mt-16 ">
-	<div class="text-2xl md:text-3xl font-bold text-gray-600 text-center pt-20">
-		<h1>Registrasi Pasien Baru Kyoai Medical Service {formattedDate}</h1>
+	<div class="text-2xl md:text-3xl font-bold text-gray-600 text-center pt-20 mx-4">
+		<h1>Registrasi Pasien Baru Kyoai Medical Service {source}</h1>
 	</div>
-	<div class="mx-16 pt-20 grid gap-6 mb-6 md:grid-cols-1">
+	<div class="mx-10 md:mx-16 pt-20 grid gap-6 mb-6 md:grid-cols-1">
 		<form on:submit={handleSubmit} id="myForm">
 			<div class="md:grid md:grid-cols-2 gap-4">
 				<div class="mb-4">
@@ -506,11 +530,15 @@ $: console.log('errors:', errors);
 					<label for="company" class="block text-sm font-medium text-gray-700 mb-2">
 						Select a Company
 					</label>
+					<!-- bind:value={formData.company} -->
+					<!-- on:select={(e) =>handleSelectSearcInput(e, 'company')} -->
+
 					<Select
-						bind:value={formData.company}
+					on:change={(e) => {
+						formData.company = e.detail.value; // Pastikan hanya menyimpan string
+					  }} 
 						id="company"
 						items={companySearch}
-						on:select={(e) =>handleSelectSearcInput(e, 'company')}
 						placeholder="Select a company"
 						styles={selectStyleFlowbite}
 					></Select>
@@ -565,11 +593,13 @@ $: console.log('errors:', errors);
 						Select a province
 					</label>
 					<Select
-						bind:value={formData.state}
-				
+						
+						on:change={(e) => {
+							formData.state = e.detail.value; // Pastikan hanya menyimpan string
+						  }} 
 						id="province-select"
 						items={provinsiSearch}
-						on:select={handleInputChangeSelect}
+						
 						placeholder="Select a province"
 						styles={selectStyleFlowbite}
 					></Select>
