@@ -14,8 +14,7 @@
 		Button,
 		InlineNotification
 	} from 'carbon-components-svelte';
-	import aichan from '../../assets/image/Group-aichan.svg';
-	import kyochan from '../../assets/image/Group-kyochan.svg';
+	
 	import { onMount } from 'svelte';
 
 	$: source = $page.url.searchParams.get('source');
