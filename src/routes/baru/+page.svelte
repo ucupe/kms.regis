@@ -234,7 +234,7 @@
     const diffTime = currentDate.getDate() - selectedDate;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-    return diffDays > 2;
+    return diffDays > 2 ? true : false;
   };
 
   /**
