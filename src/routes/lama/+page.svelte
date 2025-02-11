@@ -69,7 +69,12 @@
         if(response.ok) {
           if (result.status === 200) {
             patientId = JSON.parse(result.data)[4];
-            goto(`/reg?source=${source}&patient_id=${patientId}&template=${template}`);
+            async function navigateToReg() {
+              isLoading = true
+              await goto(`/reg?source=${source}&patient_id=${patientId}&template=${template}`);
+              isLoading = false
+            }
+            // goto(`/reg?source=${source}&patient_id=${patientId}&template=${template}`);
           } else {
             showAlert = true
             apiError = JSON.parse(result.data)[1];
