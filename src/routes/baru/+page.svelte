@@ -87,13 +87,13 @@
 	
 	source = $page.url.searchParams.get('source');
 	$: isFormValid = validateForm(formData, errors);
-	$: console.log('formData:', formData);
+	// $: console.log('formData:', formData);
 	// $: console.log('errors:', errors);
 // $: console.log('isFormValid:', isFormValid);
 
-	console.log({'a':source});
+	// console.log({'a':source});
 
-	console.log(isFormValid)
+	// console.log(isFormValid)
 	let companySearch = [];
 
 	companySearch = data.customers
@@ -152,11 +152,11 @@
 	function handleSelectSearcInput(event, field) {
 
 		formData[field] = event.detail.value
-		console.log('test0'+field, formData[field])
-		console.log({"datas":formData,
-		"field":field
+		// console.log('test0'+field, formData[field])
+		// console.log({"datas":formData,
+		// "field":field
 	
-		})
+		// })
 	}
 	
 	
@@ -228,14 +228,14 @@
     return new Date(year, month - 1, day); // Membuat objek Date
   };
 
-  const isMoreThanTwoDays = (inputDate) => {
-	const currentDate = new Date();
-    const selectedDate = parseDate(inputDate);
-    const diffTime = currentDate.getDate() - selectedDate;
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
-
-    return diffDays > 2 ? true : false;
-  };
+ 	function isWithinTwoDays(exam_date) {
+		const today = new Date();
+		const [day, month, year] = exam_date.split('/');
+		const examDate = new Date(`${year}-${month}-${day}`);
+		const timeDifference = examDate - today;
+		const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+		return daysDifference <= 2; //&& daysDifference >= 0;;
+	}
 
   /**
    * \+ DATE FLICKER +/ 
@@ -302,16 +302,16 @@
 // 	event.preventDefault();
 // 	isLoading = true;
 // 	console.log('data', formData)
-// 	console.log('clean', errors)
+// 	console.log('isMoreThanTwoDays', isWithinTwoDays(formData.exam_date))
 //     try {
 //       // Simulasi proses async
 //     //   await new Promise((resolve) => setTimeout(resolve, 3000));
-// 	  if (isMoreThanTwoDays(formData.exam_date)) {
+// 	  if (isWithinTwoDays(formData.exam_date)) {
+// 		  console.log('source', source)
+// 		  // console.log('source', $page.url.searchParams.get('source'))
+// 		goto(`/questionnaire?source=${source}&app`);
+// 	}else{
 // 		  goto(`/success`);
-// 	  }else{
-// 			console.log('source', source)
-// 			// console.log('source', $page.url.searchParams.get('source'))
-// 		  goto(`/questionnaire?source=${source}&app`);
 // 	  }
 //       // Lakukan operasi lain di sini
 //     } catch (error) {
@@ -336,6 +336,7 @@
 		baruFormData.append('source', source);
 		if (isFormValid) {
 			try {
+				isLoading = true
 				const response = await fetch('/baru', {
 					method: 'POST',
 					body: baruFormData
@@ -343,11 +344,12 @@
 				const result = await response.json();
 				if (response.ok) {
 					if (result.status === 200) {
-						if (isMoreThanTwoDays(formData.exam_date)){
-							goto(`/success`);
+						if (isWithinTwoDays(formData.exam_date)){
+						await	goto(`/questionnaire?source=${source}&`);
+						isLoading = false
 						}else{
-							console.log('source', source)
-							goto(`/questionnaire?source=${source}&`);
+						await	goto(`/success`);
+							isLoading = false
 						}
 					} else {
 						apiError = JSON.parse(result.data)[1];
@@ -358,9 +360,7 @@
 				}
 			} catch (error) {
 				console.log(`Error: ${error}`);
-			} finally {
-				isLoading = false;
-			}
+			} 
 		} else {
 			console.log('Form is invalid. Please correct the errors.');
 		}
@@ -375,6 +375,16 @@
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
+{#if isLoading}
+<div class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+	<div class='flex space-x-2 justify-center items-center h-screen '>
+		<span class='sr-only'>Loading...</span>
+		 <div class='h-8 w-8 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]'></div>
+	   <div class='h-8 w-8 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]'></div>
+	   <div class='h-8 w-8 bg-blue-600 rounded-full animate-bounce'></div>
+   </div>
+</div>
+{/if}
 <div class=" h-full container w-full mx-auto pb-8 mb-8 mt-16 ">
 	<div class="text-2xl md:text-3xl font-bold text-gray-600 text-center pt-20 mx-4">
 		<h1>Registrasi Pasien Baru Kyoai Medical Service {source}</h1>
@@ -400,8 +410,9 @@
 				<div class="mb-4">
 					<label for="dob" class="block mb-2 text-sm font-medium text-gray-900">date of birth</label
 					>
-					<DatePicker bind:value={formData.dob} datePickerType="single" dateFormat="d/m/Y">
+					<DatePicker bind:value={formData.dob} datePickerType="single" dateFormat="d/m/Y" maxDate="today">
 						<DatePickerInput
+							
 							required
 							style="width: 100%;"
 							placeholder="dd/mm/yyyy"
