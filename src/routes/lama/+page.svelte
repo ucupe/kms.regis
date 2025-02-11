@@ -69,15 +69,14 @@
         if(response.ok) {
           if (result.status === 200) {
             patientId = JSON.parse(result.data)[4];
-            async function navigateToReg(source, patientId, template) {
+           
               // isLoading = true
               await goto(`/reg?source=${source}&patient_id=${patientId}&template=${template}`);
               isLoading = false
-            }
-            navigateToReg(source, patientId, template);
-            // goto(`/reg?source=${source}&patient_id=${patientId}&template=${template}`);
-          } else {
+           
+            } else {
             showAlert = true
+            isLoading = false
             apiError = JSON.parse(result.data)[1];
           }
         } else {
@@ -90,6 +89,7 @@
     } catch (error) {
       console.log(`Error: ${error}`);
     }
+
   }
   async function extractErrorMessage(response) {
     const contentType = response.headers.get('content-type');
