@@ -18,12 +18,27 @@
 		SelectItem,
 		InlineNotification
 	} from 'carbon-components-svelte';
-	
+	import { Console } from 'carbon-pictograms-svelte';
 	export let data;
 
-	let formData = Object.fromEntries([
-    'name', 'dob', 'gender', 'id_type', 'id_paspor', 'exam_date', 'email', 'state', 'city', 'phone', 'company', 'blood_group', 'postal_code', 'occupation', 'address'
-  ].map(key => [key, '']));
+	// Form data and validation state
+	let formData = {
+		name: '',
+		dob: '',
+		gender: '',
+		id_type: '',
+		id_paspor: '',
+		exam_date: '',
+		email: '',
+		state: '',
+		city: '',
+		phone: '',
+		company: '',
+		blood_group: '',
+		postal_code: '',
+		occupation: '',
+		address: ''
+	};
 	let source = '';
 	// style
 	const selectStyleFlowbite = {
@@ -71,7 +86,7 @@
 	let isLoading = false;
 	
 	source = $page.url.searchParams.get('source');
-	$: isFormValid = Object.values(formData).every(Boolean) && !Object.values(errors).some(Boolean);
+	$: isFormValid = validateForm(formData, errors);
 	// $: console.log('formData:', formData);
 	// $: console.log('errors:', errors);
 // $: console.log('isFormValid:', isFormValid);
@@ -149,18 +164,56 @@
 
 	let selectedIdType = 'ID Type';
 
-	const validators = {
-    email: v => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v),
-    phone: v => /^[\+]?[(]?[0-9]{3}[)]?[-\s\.\d]{7,}$/.test(v),
-    postal_code: v => /^[1-9]\d{4}$/.test(v)
-  };
+	function handleInputChangeSelect(field, value) {
+		console.log(`Field: ${field}, Value: ${value}`);
+	}
+
+	// Validation functions
+	function validateEmail(email) {
+		const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		return re.test(String(email).toLowerCase());
+	}
+
+	function validatePhone(phone) {
+		const re = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+		return re.test(String(phone).toLowerCase());
+	}
+
+	function validateFiveDigitNumber(number) {
+		const re = /^[1-9]\d{4}$/; // Matches exactly 5 digits, starting with a non-zero digit
+		return re.test(String(number));
+	}
+
+	function validateForm(data, errors) {
+		return (
+			!errors.email &&
+			!errors.phone &&
+			data.name &&
+			data.dob &&
+			data.exam_date &&
+			data.gender &&
+			data.id_type &&
+			data.email &&
+			data.state &&
+			data.city &&
+			data.phone &&
+			data.company &&
+			data.id_paspor &&
+			data.postal_code &&
+			data.address
+		);
+	}
 
 
 	// Event handlers
-	function handleInputChange(field, value) {
-    formData[field] = value;
-    if (validators[field]) errors[field] = value && !validators[field](value) ? `Invalid ${field}` : '';
-  }
+	function handleInputChange(field, value, validationFn) {
+		
+		formData[field] = value;
+		if (validationFn) {
+			errors[field] = value && !validationFn(value) ? `Please enter a valid ${field}` : '';
+		}
+		validateForm(formData, errors);
+	}
 	function cleanData(data) {
     return {
       ...data,
@@ -245,32 +298,55 @@
 	 * @param event
 	 * 
 	 */
+//   const handleSubmit = async (event) => {
+// 	event.preventDefault();
+// 	isLoading = true;
+// 	console.log('data', formData)
+// 	console.log('isMoreThanTwoDays', isWithinTwoDays(formData.exam_date))
+//     try {
+//       // Simulasi proses async
+//     //   await new Promise((resolve) => setTimeout(resolve, 3000));
+// 	  if (isWithinTwoDays(formData.exam_date)) {
+// 		  console.log('source', source)
+// 		  // console.log('source', $page.url.searchParams.get('source'))
+// 		goto(`/questionnaire?source=${source}&app`);
+// 	}else{
+// 		  goto(`/success`);
+// 	  }
+//       // Lakukan operasi lain di sini
+//     } catch (error) {
+//       console.error(error);
+//     } finally {
+//       isLoading = false;
+//     }
+//   };
+
+
+
+  
  
 	async function handleSubmit(event) {
 		event.preventDefault();
-		if (!isFormValid) return console.log("Form is invalid");
-		
+		const cleanedData = cleanData(formData);
+		const baruFormData = new FormData();
+			
+		for (const key in cleanedData) {
+			baruFormData.append(key, cleanedData[key]);
+		}
+		baruFormData.append('source', source);
+		if (isFormValid) {
 			try {
 				isLoading = true
-				const formDataObj = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-        formDataObj.append(key, value);
-      });
-				const response = await fetch(`/baru?source=${source}`, {
+				const response = await fetch('/baru', {
 					method: 'POST',
-					body: formDataObj
+					body: baruFormData
 				});
 				const result = await response.json();
-				console.log({
-					'FE-result':result,
-					'FE-response':response 
-				})
-				if (response.ok && result.status === 200) {
-					
-						let dataa = JSON.parse(result.data);
-						// console.log('id_pat ',dataa[2])
+				if (response.ok) {
+					if (result.status === 200) {
+						let dataa = JSON.parse(result);
 						if (isWithinTwoDays(formData.exam_date)){
-						let patient_id = dataa[2];
+						let patient_id = dataa[6];
 
 						await	goto(`/questionnaire?source=${source}&temporary_id=${patient_id}`);
 						isLoading = false
@@ -278,14 +354,20 @@
 						await	goto(`/success`);
 							isLoading = false
 						}
+					} else {
+						apiError = JSON.parse(result.data)[1];
+					}
 				} else {
-					isLoading = false
+					const errorMessage = await extractErrorMessage(result);
+					apiError = errorMessage || 'An error occurred. Please try again.';
 				}
-				
 			} catch (error) {
 				console.log(`Error: ${error}`);
 				isLoading = false
 			} 
+		} else {
+			console.log('Form is invalid. Please correct the errors.');
+		}
 	}
 
 	function clearForm() {
@@ -332,13 +414,13 @@
 				<div class="mb-4">
 					<label for="dob" class="block mb-2 text-sm font-medium text-gray-900">date of birth</label
 					>
-					<DatePicker bind:value={formData.dob} style="width: 100%;" datePickerType="single" dateFormat="d/m/Y" maxDate="today" >
+					<DatePicker bind:value={formData.dob} datePickerType="single" dateFormat="d/m/Y" maxDate="today">
 						<DatePickerInput
 							
 							required
 							style="width: 100%;"
 							placeholder="dd/mm/yyyy"
-							class="block w-full text-sm text-gray-900 bg-white  border border-gray-300 rounded-lg  disabled:bg-gray-100 disabled:border-gray-200"
+							class="block w-full p-2.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg  disabled:bg-gray-100 disabled:border-gray-200"
 							on:change={(e) => handleInputChange('dob', e.target.value)}
 						/>
 					</DatePicker>
@@ -433,8 +515,9 @@
 						
 					
 						bind:value={formData.phone}
-						on:blur={(e) => handleInputChange('phone', e.target.value)}
-						
+						on:blur={(e) => handleInputChange('phone', e.target.value, validatePhone)}
+						invalid={!!errors.phone}
+						invalidText={errors.phone}
 					/>
 					{#if errors.phone}
 						<p class="text-red-500 text-sm">{errors.phone}</p>
@@ -449,8 +532,9 @@
 						id="email"
 						class=" border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 						placeholder="john.doe@company.com"
-						bind:value={formData.email} 
-						on:blur={(e) => handleInputChange('email', e.target.value)}
+						bind:value={formData.email}
+						on:blur={(e) => handleInputChange('email', e.target.value, validateEmail)}
+            
 						required
 					/>
 					{#if errors.email}
@@ -561,8 +645,8 @@
 						class=" border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
 						placeholder="postalcode"
 						required
-						bind:value={formData.postal_code} 
-          				on:blur={(e) => handleInputChange('postal_code', e.target.value)} 
+						bind:value={formData.postal_code}
+						on:input={(e) => handleInputChange('postal_code', e.target.value)}
 					/>
 					{#if errors.postal_code}
 				<p class="text-red-500 text-sm">{errors.postal_code}</p>						 

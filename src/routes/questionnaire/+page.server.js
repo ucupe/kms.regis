@@ -10,6 +10,7 @@ export async function load({url}) {
   const template = url.searchParams.get('template');
   const parameter = template||source;
   const appointment_id = url.searchParams.get('appointment_id');
+  const temporary_id = url.searchParams.get('temporary_id');
   try {
     const response = await fetch(`${FRAPPE_URL}/api/resource/Questionnaire Template/${parameter}`, {
       headers: {
@@ -29,6 +30,7 @@ export async function load({url}) {
           'Content-Type': 'application/json'
         }
       });
+
       const appt_result = await appt_response.json();
       if (!appt_response.ok || appt_result.data.length === 0) {
 
@@ -38,6 +40,27 @@ export async function load({url}) {
       return {
         questionnaire: result.data,
         appointment: appt_result.data
+      };
+    }else if (temporary_id){
+      const temporaryData = await fetch(`${FRAPPE_URL}/api/resource/Temporary Registration/${temporary_id}`, {
+        headers: {
+          'Authorization': `token ${API_KEY}:${API_SECRET}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const result_temporary = await temporaryData.json();
+      console.log({
+        'data tamp' : result_temporary
+      })
+      
+      if (!temporaryData.ok || result_temporary.data.length === 0) {
+
+        throw error(404, 
+         'Patient Appointment temporary nots found.');
+      }
+      return {
+        questionnaire: result.data,
+        appointment: result_temporary.data
       };
     }
     return {

@@ -124,3 +124,11 @@ z-index: 1;
     border-color: #e5e7eb; /* border-gray-200 */
   }
   
+  .flatpickr-calendar.open.static.bx--date-picker__calendar {
+    min-width: 300px !important; 
+    width: 45% ;  /* Hindari pemotongan */}
+
+  .flatpickr-calendar.open{
+    min-width: 300px !important; 
+    width: 18% ;
+  }

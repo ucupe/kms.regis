@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
 const FRAPPE_URL = env.FRAPPE_URL;
@@ -71,162 +71,63 @@ export async function load({ params }) {
 	}
 }
 export const actions = {
-	default: async ({ request }) => {
-		// Function to split full name into components
-		function splitName(fullName) {
-			const nameParts = fullName.trim().split(/\s+/); // Split by spaces and remove extra spaces
-			const firstName = nameParts[0] || ""; // First word is the First Name
-			const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""; // Last word is the Last Name if present
-			const middleName = nameParts.length > 2 
-				? nameParts.slice(1, -1).join(" ") // Everything between First and Last is Middle Name
-				: ""; // No middle name if there are only one or two words
-			return {
-				first_name: firstName,
-				middle_name: middleName,
-				last_name: lastName,
-			};
-		}
-
-		//Retrieve formData
+	default: async ({ request, url }) => {
 		const formData = await request.formData();
-		const fullName = formData.get('name');
-		if(!fullName) {
-			throw fail(500, {
-				error: error,
-				detail: 'Name is required.'
-			});				
-		}
-
-		//Split name
-		const {first_name, middle_name, last_name} = splitName(fullName);
-		formData.set('first_name', first_name);
-		formData.set('middle_name', middle_name);
-		formData.set('last_name', last_name);
-
 		const customerFormData = new FormData();
-		customerFormData.set('customer_name', fullName);
-		customerFormData.set('customer_type', 'Individual');
+		customerFormData.set('patient_name', formData.get('name'));
+		customerFormData.set('date_of_birth', formData.get('dob').split('/').reverse().join('-'));
+		customerFormData.set('type', formData.get('id_type'));
+		customerFormData.set('id_number', formData.get('id_paspor'));
 		customerFormData.set('gender', formData.get('gender'));
+		customerFormData.set('phone_number', formData.get('phone'));
+		customerFormData.set('company', formData.get('company'));
+		customerFormData.set('exam_date', formData.get('exam_date').split('/').reverse().join('-'));
+		customerFormData.set('status', 'Draft');
+		customerFormData.set('created', new Date().toISOString().slice(0, 19).replace('T', ' '));
+		customerFormData.set('appointment_type', url.searchParams.get('source'));
 		try {
-			const customerResponse = await fetch(`${FRAPPE_URL}/api/resource/Customer`, {
+			const customerResponse = await fetch(`${FRAPPE_URL}/api/resource/Temporary Registration`, {
 				method: 'POST',
 				headers: {
 					Authorization: `token ${API_KEY}:${API_SECRET}`,
 				},
 				body: customerFormData
 			});
+			console.log({'0': customerFormData})
+			console.log({'1' : customerResponse,
+				'1-status' : customerResponse.status
+			})
 			const customerResult = await customerResponse.json();
 			if(!customerResponse.ok) {
-				throw fail(500, {
-					error: error,
-					detail: 'Error in processing Customer.'
-				});				
-			}
-			const customerName = customerResult.data.name;
-			
-			const patientFormData = new FormData();
-			patientFormData.set('first_name', formData.get('first_name'));
-			patientFormData.set('middle_name', formData.get('middle_name'));
-			patientFormData.set('last_name', formData.get('last_name'));
-			patientFormData.set('sex', formData.get('gender'));
-			patientFormData.set('blood_group', formData.get('blood_group'));
-			patientFormData.set('dob', formData.get('dob').split('/').reverse().join('-'));
-			patientFormData.set('custom_id_type', formData.get('id_type'));
-			patientFormData.set('uid', formData.get('id_paspor'));
-			patientFormData.set('mobile', formData.get('phone'));
-			patientFormData.set('email', formData.get('email'));
-			patientFormData.set('occupation', formData.get('occupation'));
-			patientFormData.set('customer', customerName);
-			patientFormData.set('custom_company', formData.get('company'));
-			patientFormData.set('invite_user', 0);
-			
-			const patientResponse = await fetch(`${FRAPPE_URL}/api/resource/Patient`, {
-				method: 'POST',
-				headers: {
-					Authorization: `token ${API_KEY}:${API_SECRET}`,
-				},
-				body: patientFormData
-			});
-			const patientResult = await patientResponse.json();
-			if(!patientResponse.ok) {
-				throw fail(500, {
-					error: error,
-					detail: 'Error in processing Customer.'
-				});				
-			}
-			
-			const patientName = patientResult.data.name;
-			
-			const addressFormData = new FormData();
-			addressFormData.set('address_title', patientName);
-			addressFormData.set('address_type', 'Permanent');
-			addressFormData.set('address_line1', formData.get('address'));
-			addressFormData.set('city', formData.get('city'));
-			addressFormData.set('state', formData.get('state'));
-			addressFormData.set('pincode', formData.get('postal_code'));
-			addressFormData.set('country', 'Indonesia');
-			addressFormData.set('is_primary_address', 1);
-			addressFormData.set('is_shipping_address', 1);
-			const links = [
-				{link_doctype: 'Patient', link_name: patientName},
-				{link_doctype: 'Customer', link_name: customerName},
-			]
-			//addressFormData.set('links', JSON.stringify(links));
-			const addressResponse = await fetch(`${FRAPPE_URL}/api/resource/Address`, {
-				method: 'POST',
-				headers: {
-					Authorization: `token ${API_KEY}:${API_SECRET}`,
-				},
-				body: addressFormData
-			});
-			const addressResult = await addressResponse.json();
-			if(!addressResponse.ok) {
-				throw fail(500, {
-					error: error,
-					detail: 'Error in processing Customer.'
-				});				
-			}
+				let errorMsg = 'An error occurred.';
+				console.log({'3': errorMsg,
+					'4': customerResponse.response.status
+				})
+				if (customerResponse.response.status === 401 || customerResponse.response.status === 403) {
+					errorMsg = 'Unauthorized: Invalid API Key or Secret.';
+				} else if (customerResponse.response.status === 404) {
+					errorMsg = 'Appointment Type not found.';
+				} else if (customerResponse.response.status === 500) {
+					errorMsg = 'Internal Server Error or invalid credentials.';
+				} else {
+					const text = await response.text();
+					errorMsg = `HTTP Error: ${response.status} ${response.statusText} - ${text}`;
+				}
+				
 
-			const regFormData = new FormData();
-			regFormData.set('date_of_birth', formData.get('dob').split('/').reverse().join('-'));
-			regFormData.set('patient_name', formData.get('name'));
-			regFormData.set('id_number', formData.get('id_paspor'));
-			regFormData.set('gender', formData.get('gender'));
-			regFormData.set('phone_number', formData.get('phone'));
-			regFormData.set('questionnaire_type', formData.get('source'));
-			regFormData.set('exam_date', formData.get('exam_date').split('/').reverse().join('-'));
-			regFormData.set('company', formData.get('company'));
-			regFormData.set('type', formData.get('id_type'));
-			regFormData.set('status', 'Draft');
-			regFormData.set('patient', patientName);
-			const regResponse = await fetch(`${FRAPPE_URL}/api/resource/Temporary Registration`, {
-				method: 'POST',
-				headers: {
-					Authorization: `token ${API_KEY}:${API_SECRET}`,
-				},
-				body: regFormData
-			});
-			const regResult = await regResponse.json();
-			console.log({
-				'backend response': regResponse,
-				'backend result': regResult
-			})
-			if(!regResponse.ok) {
-				throw fail(500, {
-					error: error,
-					detail: 'Error in processing Customer.'
-				});				
+				// Throw an error to trigger the error page
+				throw error(customerResponse.response.status, errorMsg);
 			}
+			
 			return {
 				status: 200,
-				message: 'Brasil membuat data pasien, customer, dan alamat.',
-				body: regResult
+				message: customerResult.data.name
 			};
-		} catch (error) {
-			return {
-				status: 500,
-				error: new Error('Failed to create Customer')
-			};
+		} catch (err) {
+			console.log({'2': err})
+			const statusCode = err.status && err.status >= 400 && err.status <= 599 ? err.status : 500;
+			const errorMessage = err.body ? 'Failed to save Appointment: ' + err.body : 'Failed to save Appointment: Unknown error';
+			throw error(statusCode, errorMessage);
 		}
 	}
 };	

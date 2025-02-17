@@ -165,20 +165,24 @@
 					  <p class="text-base font-normal">{appointment_data.patient_name}</p>
 					</div>
 				  
-					<div class="flex">
-					  <p class="text-base font-semibold w-40">Patient Age :</p>
-					  <p class="text-base font-normal">{appointment_data.patient_age}</p>
+					<div class="flex gap-x-2">
+					  <p class="text-base font-semibold w-40">Patient Date Of Birth : </p>
+					  {appointment_data?.patient_age ?? appointment_data?.date_of_birth}
 					</div>
 				  
 					<div class="flex">
 					  <p class="text-base font-semibold w-40">Patient Sex :</p>
-					  <p class="text-base font-normal">{appointment_data.patient_sex}</p>
+					  <p class="text-base font-normal">{appointment_data?.patient_sex ?? appointment_data?.gender}</p>
 					</div>
 				  
-					<div class="flex">
-					  <p class="text-base font-semibold w-40">Patient Branch :</p>
-					  <p class="text-base font-normal">{appointment_data.custom_branch}</p>
+					<div class="flex gap-x-2">
+					  <p class="text-base font-semibold w-40">Patient Company :</p>
+					  <p class="text-base font-normal">{appointment_data?.company_name ?? ' - '}</p>
 					</div>
+					<div class="flex ">
+						<p class="text-base font-semibold w-40">Phone Number :</p>
+						<p class="text-base font-normal">{appointment_data?.phone_number ?? ' - '}</p>
+					  </div>
 				  </div>
 				  
 				  
