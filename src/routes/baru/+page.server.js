@@ -23,6 +23,8 @@ export async function load({ params }) {
 		}
 
 		const result = await response.json();
+		console.log(result)
+
 		if (!result.data || result.data.length === 0) {
 			throw fail(404, {
 				error: 'Customer not found'

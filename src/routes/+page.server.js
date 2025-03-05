@@ -7,6 +7,14 @@ const API_SECRET = env.API_SECRET;
 
 export async function load() {
   try {
+      const endpoint = await fetch(`${FRAPPE_URL}/api/method/kms.api.get_appointment_types`, {
+        headers: {
+          'Authorization': `token ${API_KEY}:${API_SECRET}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      const endpoint_json = await endpoint.json()
+      console.log(endpoint_json)
     const response = await fetch(`${FRAPPE_URL}/api/resource/Appointment Type`, {
       headers: {
         'Authorization': `token ${API_KEY}:${API_SECRET}`,
@@ -25,7 +33,8 @@ export async function load() {
       });
     } else {
       return {
-        type: result.data
+        type: result.data,
+        serr: endpoint_json.message
       };
     }
   } catch (err) {
