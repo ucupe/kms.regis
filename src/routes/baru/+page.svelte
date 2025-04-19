@@ -370,6 +370,19 @@
 					<label for="id_paspor" class="block mb-2 text-sm font-medium text-gray-900"
 						>{selectedIdType} Number</label
 					>
+					
+					{#if selectedIdType === 'PASPORT'}
+					<input
+						type="text"
+						id="id_paspor"
+						class="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+						placeholder="Enter your passport number"
+						required
+						bind:value={formData.id_paspor}
+						on:input={(e) => handleInputChange('id_paspor', e.target.value)}
+					/>
+				{:else}
+					
 					<input
 
 						type="tel"
@@ -381,6 +394,7 @@
 						bind:value={formData.id_paspor}
 						on:input={(e) => handleInputChange('id_paspor', e.target.value)}
 					/>
+				{/if}
 					{#if errors.id_paspor}
 				<p class="text-red-500 text-sm">{errors.id_paspor}</p>
 					{/if}
