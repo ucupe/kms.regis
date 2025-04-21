@@ -417,7 +417,7 @@
 				</div>
 				<div class="mb-4">
 					<label for="blood_group" class="block mb-2 text-sm font-medium text-gray-900"
-						>Bloood Group</label
+						>Blood Group</label
 					>
 					<select
 						id="blood_group"
